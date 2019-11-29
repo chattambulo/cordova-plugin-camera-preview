@@ -14,7 +14,6 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SizeF;
 import android.util.TypedValue;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
@@ -286,31 +285,9 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
         //display camera bellow the webview
         if(toBack){
 
-          View view = webView.getView();
-          ViewParent rootParent = containerView.getParent();
-          ViewParent curParent = view.getParent();
-
-          view.setBackgroundColor(0x00000000);
-          // If parents do not match look for.
-          if(curParent.getParent() != rootParent) {
-            while(curParent != null && curParent.getParent() != rootParent) {
-              curParent = curParent.getParent();
-            }
-
-            if(curParent != null) {
-              ((ViewGroup)curParent).setBackgroundColor(0x00000000);
-              ((ViewGroup)curParent).bringToFront();
-            } else {
-              // Do default...
-              curParent = view.getParent();
-              webViewParent = curParent;
-              ((ViewGroup)view).bringToFront();
-            }
-          }else{
-            // Default
-            webViewParent = curParent;
-            ((ViewGroup)view).bringToFront();
-          }
+          webView.getView().setBackgroundColor(0x00000000);
+          webViewParent = webView.getView().getParent();
+           ((ViewGroup)webView.getView()).bringToFront();
 
         }else{
 
@@ -320,11 +297,16 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 
         }
 
-        //add the fragment to the container
-        FragmentManager fragmentManager = cordova.getActivity().getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(containerView.getId(), fragment);
-        fragmentTransaction.commit();
+          FragmentManager fragmentManager = cordova.getActivity().getFragmentManager();
+          FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+          fragmentTransaction.replace(containerView.getId(), fragment);
+          fragmentTransaction.commit();
+          try {
+//add the fragment to the container
+        } catch (IllegalStateException e) {
+          e.printStackTrace();
+        }
+
       }
     });
 

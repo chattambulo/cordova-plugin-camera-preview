@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.util.Base64;
@@ -20,6 +21,7 @@ import android.hardware.Camera.ShutterCallback;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +32,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -49,6 +52,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Arrays;
 import java.util.UUID;
+
+import static android.content.Context.WINDOW_SERVICE;
 
 public class CameraActivity extends Fragment {
 
@@ -120,8 +125,18 @@ public class CameraActivity extends Fragment {
     if(mPreview == null) {
       setDefaultCameraId();
 
+      FrameLayout.LayoutParams layoutParams;
+      int currentOrientation = getResources().getConfiguration().orientation;
+      if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+        // Landscape
+        layoutParams = new FrameLayout.LayoutParams(height, width);
+      }
+      else {
+        // Portrait
+        layoutParams = new FrameLayout.LayoutParams(width, height);
+      }
+
       //set box position and size
-      FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(width, height);
       layoutParams.setMargins(x, y, 0, 0);
       frameContainerLayout = (FrameLayout) view.findViewById(getResources().getIdentifier("frame_container", "id", appResourcesPackage));
       frameContainerLayout.setLayoutParams(layoutParams);
@@ -253,7 +268,7 @@ public class CameraActivity extends Fragment {
     // Find the total number of cameras available
     numberOfCameras = Camera.getNumberOfCameras();
 
-    int facing = "front".equals(defaultCamera) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
+    int facing = defaultCamera.equals("front") ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
 
     // Find the ID of the default camera
     Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
@@ -279,6 +294,7 @@ public class CameraActivity extends Fragment {
     cameraCurrentlyLocked = defaultCameraId;
 
     if(mPreview.mPreviewSize == null){
+
       mPreview.setCamera(mCamera, cameraCurrentlyLocked);
       eventListener.onCameraStarted();
     } else {
@@ -330,9 +346,6 @@ public class CameraActivity extends Fragment {
   }
 
   public void switchCamera() {
-    // Find the total number of cameras available
-    numberOfCameras = Camera.getNumberOfCameras();
-    
     // check for availability of multiple cameras
     if (numberOfCameras == 1) {
       //There is only one camera available
